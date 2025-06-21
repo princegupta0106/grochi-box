@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,8 +33,58 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
     phone: "",
     address: "",
     pincode: "",
+    location: "",
   });
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "online">("cod");
+
+  // Auto-fill form data from previous orders
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      if (!user) return;
+
+      try {
+        // First try to get data from user profile
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('phone_number, address, pincode, location')
+          .eq('id', user.id)
+          .single();
+
+        if (!profileError && profile) {
+          setFormData({
+            phone: profile.phone_number || "",
+            address: profile.address || "",
+            pincode: profile.pincode || "",
+            location: profile.location || "",
+          });
+        }
+
+        // If profile doesn't have complete data, try to get from latest order
+        if (!profile?.phone_number || !profile?.address || !profile?.pincode) {
+          const { data: latestOrder } = await supabase
+            .from('orders')
+            .select('phone_number, delivery_address, delivery_pincode, order_location')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+          if (latestOrder) {
+            setFormData(prev => ({
+              phone: prev.phone || latestOrder.phone_number || "",
+              address: prev.address || latestOrder.delivery_address || "",
+              pincode: prev.pincode || latestOrder.delivery_pincode || "",
+              location: prev.location || latestOrder.order_location || "",
+            }));
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+      }
+    };
+
+    fetchUserDetails();
+  }, [user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -80,6 +130,27 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
     });
   };
 
+  const updateUserProfile = async () => {
+    if (!user) return;
+
+    try {
+      await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          phone_number: formData.phone,
+          address: formData.address,
+          pincode: formData.pincode,
+          location: formData.location,
+          name: user.user_metadata?.name || user.email?.split('@')[0] || '',
+          email: user.email || '',
+          updated_at: new Date().toISOString(),
+        });
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -109,7 +180,10 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
     try {
       const deliveryFee = 50;
       const finalTotal = total + deliveryFee;
-      const currentLocation = await getCurrentLocation();
+      const currentLocation = formData.location || await getCurrentLocation();
+
+      // Update user profile with latest details
+      await updateUserProfile();
 
       if (paymentMethod === "online") {
         // Create Razorpay order
@@ -242,37 +316,11 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
   };
 
   return (
-    <div>
-      {/* Order summary section */}
-      <div className="mb-8">
-        <h3 className="text-lg font-semibold mb-4">Order Summary</h3>
-        <div className="bg-gray-50 rounded-lg p-4 mb-6">
-          {cartItems.map((item) => (
-            <div key={item.id} className="flex items-center justify-between py-2 border-b last:border-b-0">
-              <div className="flex items-center gap-3">
-                {item.image && (
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-10 h-10 object-cover rounded"
-                  />
-                )}
-                <div>
-                  <p className="font-medium">{item.name}</p>
-                  <p className="text-sm text-gray-600">₹{item.price} x {item.quantity}</p>
-                </div>
-              </div>
-              <p className="font-medium">₹{item.price * item.quantity}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <h3 className="text-lg font-semibold mb-4">Shipping Information</h3>
+    <div className="max-w-2xl mx-auto">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="phone">Phone Number</Label>
+          <div className="space-y-2">
+            <Label htmlFor="phone" className="text-sm font-semibold text-gray-700">Phone Number</Label>
             <Input
               id="phone"
               name="phone"
@@ -281,11 +329,11 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
               onChange={handleInputChange}
               required
               placeholder="Enter your phone number"
-              className="lg:text-base"
+              className="h-10 border-2 focus:border-green-500 rounded-lg"
             />
           </div>
-          <div>
-            <Label htmlFor="pincode">Pincode</Label>
+          <div className="space-y-2">
+            <Label htmlFor="pincode" className="text-sm font-semibold text-gray-700">Pincode</Label>
             <Input
               id="pincode"
               name="pincode"
@@ -294,13 +342,13 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
               onChange={handleInputChange}
               required
               placeholder="Enter delivery pincode"
-              className="lg:text-base"
+              className="h-10 border-2 focus:border-green-500 rounded-lg"
             />
           </div>
         </div>
 
-        <div>
-          <Label htmlFor="address">Delivery Address</Label>
+        <div className="space-y-2">
+          <Label htmlFor="address" className="text-sm font-semibold text-gray-700">Delivery Address</Label>
           <Input
             id="address"
             name="address"
@@ -308,54 +356,66 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
             onChange={handleInputChange}
             required
             placeholder="Enter complete delivery address"
-            className="lg:text-base"
+            className="h-10 border-2 focus:border-green-500 rounded-lg"
           />
         </div>
 
-        <div className="pt-6">
-          <h3 className="text-lg font-semibold mb-4">Payment Method</h3>
+        <div className="space-y-2">
+          <Label htmlFor="location" className="text-sm font-semibold text-gray-700">Location (Optional)</Label>
+          <Input
+            id="location"
+            name="location"
+            value={formData.location}
+            onChange={handleInputChange}
+            placeholder="Enter landmark or additional location details"
+            className="h-10 border-2 focus:border-green-500 rounded-lg"
+          />
+        </div>
+
+        <div className="space-y-3">
+          <Label className="text-base font-bold text-gray-900">Payment Method</Label>
           <RadioGroup value={paymentMethod} onValueChange={(value: "cod" | "online") => setPaymentMethod(value)}>
-            <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer mb-3">
+            <div className="flex items-center space-x-3 p-3 border-2 rounded-lg hover:bg-green-50 cursor-pointer transition-colors">
               <RadioGroupItem value="cod" id="cod" />
               <div className="flex items-center space-x-3 flex-1">
                 <Banknote className="w-5 h-5 text-green-600" />
                 <div>
-                  <Label htmlFor="cod" className="cursor-pointer font-medium">Cash on Delivery</Label>
-                  <p className="text-sm text-gray-600">Pay when you receive your order</p>
+                  <Label htmlFor="cod" className="cursor-pointer font-semibold text-gray-900 text-sm">Cash on Delivery</Label>
+                  <p className="text-xs text-gray-600">Pay when you receive your order</p>
                 </div>
               </div>
             </div>
-            <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
+            <div className="flex items-center space-x-3 p-3 border-2 rounded-lg hover:bg-blue-50 cursor-pointer transition-colors">
               <RadioGroupItem value="online" id="online" />
               <div className="flex items-center space-x-3 flex-1">
-                <CreditCard className="w-5 h-5 text-green-600" />
+                <CreditCard className="w-5 h-5 text-blue-600" />
                 <div>
-                  <Label htmlFor="online" className="cursor-pointer font-medium">Online Payment</Label>
-                  <p className="text-sm text-gray-600">Pay using UPI, Cards, Net Banking</p>
+                  <Label htmlFor="online" className="cursor-pointer font-semibold text-gray-900 text-sm">Online Payment</Label>
+                  <p className="text-xs text-gray-600">Pay using UPI, Cards, Net Banking</p>
                 </div>
               </div>
             </div>
           </RadioGroup>
         </div>
 
-        <div className="border-t pt-4 mt-6">
+        <div className="border-t-2 pt-4 bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg">
           <div className="flex justify-between items-center mb-2">
-            <span className="lg:text-lg">Subtotal:</span>
-            <span className="lg:text-lg">₹{total}</span>
+            <span className="text-sm font-medium text-gray-700">Subtotal:</span>
+            <span className="text-sm font-semibold text-gray-900">₹{total}</span>
           </div>
           <div className="flex justify-between items-center mb-2">
-            <span className="lg:text-lg">Delivery Fee:</span>
-            <span className="lg:text-lg">₹50</span>
+            <span className="text-sm font-medium text-gray-700">Delivery Fee:</span>
+            <span className="text-sm font-semibold text-gray-900">₹50</span>
           </div>
-          <div className="flex justify-between items-center font-bold text-lg lg:text-xl">
-            <span>Total:</span>
-            <span>₹{total + 50}</span>
+          <div className="flex justify-between items-center font-bold text-lg border-t pt-2">
+            <span className="text-gray-900">Total:</span>
+            <span className="text-green-600">₹{total + 50}</span>
           </div>
         </div>
 
         <Button
           type="submit"
-          className="w-full bg-green-600 hover:bg-green-700 py-3 lg:py-4 lg:text-lg"
+          className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 py-3 text-base font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
           disabled={loading}
         >
           {loading ? "Placing Order..." : `Place Order (₹${total + 50})`}

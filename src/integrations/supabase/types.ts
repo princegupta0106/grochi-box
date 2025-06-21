@@ -257,6 +257,7 @@ export type Database = {
           created_at: string | null
           email: string
           id: string
+          location: string | null
           name: string
           order_ids: string[] | null
           phone_number: string
@@ -268,6 +269,7 @@ export type Database = {
           created_at?: string | null
           email: string
           id: string
+          location?: string | null
           name: string
           order_ids?: string[] | null
           phone_number: string
@@ -279,6 +281,7 @@ export type Database = {
           created_at?: string | null
           email?: string
           id?: string
+          location?: string | null
           name?: string
           order_ids?: string[] | null
           phone_number?: string

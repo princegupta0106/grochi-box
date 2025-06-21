@@ -13,6 +13,7 @@ import AdminHeader from "@/components/admin/AdminHeader";
 import AdminTabs from "@/components/admin/AdminTabs";
 import CouponsForm from "@/components/admin/CouponsForm";
 import CouponsTable from "@/components/admin/CouponsTable";
+import DashboardTab from "@/components/admin/DashboardTab";
 import { Button } from "@/components/ui/button";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -20,7 +21,7 @@ type OrderStatus = Database["public"]["Enums"]["order_status"];
 
 const Admin = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<"products" | "orders" | "coupons" | "locations">("products");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "products" | "orders" | "coupons" | "locations">("dashboard");
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showAddCoupon, setShowAddCoupon] = useState(false);
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
@@ -415,6 +416,16 @@ const Admin = () => {
       <div className="border-b border-gray-200 bg-white">
         <div className="flex space-x-8 px-4">
           <button
+            onClick={() => setActiveTab("dashboard")}
+            className={`py-4 px-2 border-b-2 font-medium text-sm ${
+              activeTab === "dashboard"
+                ? "border-green-500 text-green-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Dashboard
+          </button>
+          <button
             onClick={() => setActiveTab("products")}
             className={`py-4 px-2 border-b-2 font-medium text-sm ${
               activeTab === "products"
@@ -458,6 +469,8 @@ const Admin = () => {
       </div>
 
       <div className="p-4">
+        {activeTab === "dashboard" && <DashboardTab />}
+
         {activeTab === "products" && (
           <div>
             <div className="flex justify-between items-center mb-6">

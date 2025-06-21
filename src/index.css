@@ -99,52 +99,36 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-gradient-to-br from-gray-50 to-green-50 text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
 }
 
-/* Hide all scrollbars completely */
+/* Premium scrollbar styling */
 * {
-  scrollbar-width: none !important; /* Firefox - hide scrollbar */
-  -ms-overflow-style: none !important; /* IE and Edge - hide scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: #10b981 transparent;
 }
 
 *::-webkit-scrollbar {
-  display: none !important; /* Chrome, Safari, Opera - hide scrollbar */
-  width: 0 !important;
-  height: 0 !important;
-  background: transparent !important;
+  width: 6px;
+  height: 6px;
 }
 
 *::-webkit-scrollbar-track {
-  display: none !important;
+  background: transparent;
 }
 
 *::-webkit-scrollbar-thumb {
-  display: none !important;
+  background: linear-gradient(45deg, #10b981, #059669);
+  border-radius: 10px;
 }
 
-*::-webkit-scrollbar-corner {
-  display: none !important;
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, #059669, #047857);
 }
 
-/* Additional safety for hiding scrollbars */
-html, body, div, section, article, aside, nav, main, header, footer, ul, ol, li {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
-}
-
-html::-webkit-scrollbar, body::-webkit-scrollbar, div::-webkit-scrollbar, 
-section::-webkit-scrollbar, article::-webkit-scrollbar, aside::-webkit-scrollbar, 
-nav::-webkit-scrollbar, main::-webkit-scrollbar, header::-webkit-scrollbar, 
-footer::-webkit-scrollbar, ul::-webkit-scrollbar, ol::-webkit-scrollbar, 
-li::-webkit-scrollbar {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-}
-
-/* Utility class for hiding scrollbars */
+/* Hide scrollbars for horizontal scroll sections */
 .scrollbar-hide {
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
@@ -154,4 +138,56 @@ li::-webkit-scrollbar {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
+}
+
+/* Custom animations */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Premium card effects */
+.premium-card {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.premium-card:hover {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

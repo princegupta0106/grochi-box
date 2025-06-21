@@ -24,15 +24,15 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
   const isImageUrl = product.image.startsWith('http') || product.image.startsWith('/');
 
   return (
-    <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-all">
+    <div className="bg-white rounded-lg p-1.5 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 w-full relative overflow-hidden">
       <Link to={`/product/${product.id}`} className="block">
-        <div className="text-center mb-3">
-          <div className="mb-2 h-16 flex items-center justify-center">
+        <div className="text-center mb-1.5">
+          <div className="mb-1 h-16 flex items-center justify-center bg-gray-50 rounded-md">
             {isImageUrl ? (
               <img 
                 src={product.image} 
                 alt={product.name}
-                className="w-full h-full object-cover rounded"
+                className="w-full h-full object-cover rounded-md"
                 onError={(e) => {
                   const target = e.currentTarget as HTMLImageElement;
                   target.style.display = 'none';
@@ -43,27 +43,27 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
                 }}
               />
             ) : (
-              <div className="text-4xl">{product.image}</div>
+              <div className="text-3xl">{product.image}</div>
             )}
             {isImageUrl && (
-              <div className="text-4xl hidden">🛒</div>
+              <div className="text-3xl hidden">🛒</div>
             )}
           </div>
           {discount > 0 && (
-            <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">
+            <span className="absolute top-1 right-1 bg-red-500 text-white text-xs px-1 py-0.5 rounded-full font-bold">
               {discount}% OFF
             </span>
           )}
         </div>
         
-        <div className="space-y-2 mb-3">
-          <h3 className="font-medium text-gray-800 text-sm leading-tight">
+        <div className="space-y-0.5 mb-1.5">
+          <h3 className="font-semibold text-gray-900 text-xs leading-tight line-clamp-2 min-h-[1rem]">
             {product.name}
           </h3>
           <p className="text-gray-500 text-xs">{product.unit}</p>
           
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-gray-900">₹{product.price}</span>
+          <div className="flex items-center gap-1">
+            <span className="font-bold text-green-600 text-sm">₹{product.price}</span>
             {product.originalPrice && (
               <span className="text-gray-400 text-xs line-through">
                 ₹{product.originalPrice}
@@ -78,9 +78,9 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
           e.preventDefault();
           onAddToCart(product);
         }}
-        className="w-full bg-green-500 hover:bg-green-600 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors active:scale-95"
+        className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-xs font-semibold py-1 px-2 rounded-md transition-all duration-200 transform hover:scale-105 shadow-md"
       >
-        ADD
+        ADD TO CART
       </button>
     </div>
   );

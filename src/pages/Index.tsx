@@ -1,15 +1,14 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { Link, useNavigate } from "react-router-dom";
-import { Clock } from "lucide-react";
+import { Link } from "react-router-dom";
 import Header from "@/components/Header";
-import CategoryTabs from "@/components/CategoryTabs";
-import SubCategoryTabs from "@/components/SubCategoryTabs";
-import ProductGrid from "@/components/ProductGrid";
 import FeaturedProducts from "@/components/FeaturedProducts";
+import CategoryProductSection from "@/components/CategoryProductSection";
+import CategoriesSection from "@/components/CategoriesSection";
 import Cart from "@/components/Cart";
+import BottomTabNavigation from "@/components/BottomTabNavigation";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 interface CartItem {
   id: string;
@@ -22,12 +21,49 @@ interface CartItem {
 
 const Index = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const [selectedCategory, setSelectedCategory] = useState(""); // No default category
-  const [selectedSubCategory, setSelectedSubCategory] = useState("");
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const { toast } = useToast();
+
+  // Listen for cart clear events from checkout success
+  useEffect(() => {
+    const handleClearCart = () => {
+      setCartItems([]);
+    };
+
+    window.addEventListener('clearCart', handleClearCart);
+    return () => {
+      window.removeEventListener('clearCart', handleClearCart);
+    };
+  }, []);
+
+  const categories = [
+    { 
+      id: "fruits", 
+      name: "Fresh Fruits", 
+      icon: "🍎"
+    },
+    { 
+      id: "vegetables", 
+      name: "Fresh Vegetables", 
+      icon: "🥕"
+    },
+    { 
+      id: "dairy", 
+      name: "Dairy Products", 
+      icon: "🥛"
+    },
+    { 
+      id: "snacks", 
+      name: "Snacks & Munchies", 
+      icon: "🍿"
+    },
+    { 
+      id: "beverages", 
+      name: "Cold Drinks & Juices", 
+      icon: "🥤"
+    },
+  ];
 
   const addToCart = (product: any) => {
     if (!user) {
@@ -96,46 +132,25 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20">
       <Header
         cartItemsCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
         onCartClick={() => setIsCartOpen(true)}
       />
       
-      <CategoryTabs
-        selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
-      />
-      
-      {selectedCategory && (
-        <SubCategoryTabs
-          selectedCategory={selectedCategory}
-          selectedSubCategory={selectedSubCategory}
-          onSubCategoryChange={setSelectedSubCategory}
-        />
-      )}
-
-      {/* Past Orders Button */}
-      <div className="px-4 py-3">
-        <button 
-          onClick={() => navigate('/past-orders')}
-          className="w-full bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-3 hover:bg-gray-50 transition-colors"
-        >
-          <Clock className="w-5 h-5 text-gray-600" />
-          <span className="font-medium text-gray-800">View Past Orders</span>
-        </button>
-      </div>
-      
       <FeaturedProducts onAddToCart={addToCart} />
       
-      {selectedCategory && (
-        <div className="pb-4">
-          <ProductGrid
-            category={selectedCategory}
+      <CategoriesSection />
+      
+      <div className="bg-white">
+        {categories.map((category) => (
+          <CategoryProductSection
+            key={category.id}
+            category={category}
             onAddToCart={addToCart}
           />
-        </div>
-      )}
+        ))}
+      </div>
       
       <Cart
         isOpen={isCartOpen}
@@ -144,6 +159,11 @@ const Index = () => {
         updateQuantity={updateQuantity}
         removeItem={removeItem}
         clearCart={clearCart}
+      />
+
+      <BottomTabNavigation
+        cartItemsCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+        onCartClick={() => setIsCartOpen(true)}
       />
     </div>
   );
