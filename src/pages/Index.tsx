@@ -3,9 +3,13 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
+import BannerCarousel from "@/components/BannerCarousel";
 import FeaturedProducts from "@/components/FeaturedProducts";
 import CategoryProductSection from "@/components/CategoryProductSection";
 import CategoriesSection from "@/components/CategoriesSection";
+import FeaturesSection from "@/components/FeaturesSection";
+import AboutSection from "@/components/AboutSection";
+import Footer from "@/components/Footer";
 import Cart from "@/components/Cart";
 import BottomTabNavigation from "@/components/BottomTabNavigation";
 import { useToast } from "@/hooks/use-toast";
@@ -66,15 +70,6 @@ const Index = () => {
   ];
 
   const addToCart = (product: any) => {
-    if (!user) {
-      toast({
-        title: "Login Required",
-        description: "Please login to add items to cart",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setCartItems(prev => {
       const existingItem = prev.find(item => item.id === product.id);
       if (existingItem) {
@@ -113,44 +108,36 @@ const Index = () => {
     setCartItems([]);
   };
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-green-600 mb-2">QuickMart</h1>
-          <p className="text-gray-600 mb-6">Delivery in 10 minutes</p>
-          <p className="text-gray-700 mb-8">Please login to start shopping</p>
-          <Link
-            to="/auth"
-            className="bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
-          >
-            Login / Sign Up
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50">
       <Header
         cartItemsCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
         onCartClick={() => setIsCartOpen(true)}
       />
       
-      <FeaturedProducts onAddToCart={addToCart} />
+      <BannerCarousel />
       
-      <CategoriesSection />
-      
-      <div className="bg-white">
-        {categories.map((category) => (
-          <CategoryProductSection
-            key={category.id}
-            category={category}
-            onAddToCart={addToCart}
-          />
-        ))}
+      <div className="max-w-6xl mx-auto px-4">
+        <FeaturedProducts onAddToCart={addToCart} />
+        
+        <CategoriesSection />
+        
+        <div className="bg-white rounded-xl shadow-sm my-6">
+          {categories.map((category) => (
+            <CategoryProductSection
+              key={category.id}
+              category={category}
+              onAddToCart={addToCart}
+            />
+          ))}
+        </div>
+        
+        <FeaturesSection />
+        
+        <AboutSection />
       </div>
+      
+      <Footer />
       
       <Cart
         isOpen={isCartOpen}
@@ -161,10 +148,12 @@ const Index = () => {
         clearCart={clearCart}
       />
 
-      <BottomTabNavigation
-        cartItemsCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
-        onCartClick={() => setIsCartOpen(true)}
-      />
+      <div className="pb-20">
+        <BottomTabNavigation
+          cartItemsCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+          onCartClick={() => setIsCartOpen(true)}
+        />
+      </div>
     </div>
   );
 };

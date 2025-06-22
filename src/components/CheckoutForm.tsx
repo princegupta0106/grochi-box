@@ -30,6 +30,7 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
+    email: "",
     phone: "",
     address: "",
     pincode: "",
@@ -37,7 +38,7 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
   });
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "online">("cod");
 
-  // Auto-fill form data from previous orders
+  // Auto-fill form data from user profile if logged in
   useEffect(() => {
     const fetchUserDetails = async () => {
       if (!user) return;
@@ -46,17 +47,24 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
         // First try to get data from user profile
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('phone_number, address, pincode, location')
+          .select('phone_number, address, pincode, location, email')
           .eq('id', user.id)
           .single();
 
         if (!profileError && profile) {
           setFormData({
+            email: profile.email || user.email || "",
             phone: profile.phone_number || "",
             address: profile.address || "",
             pincode: profile.pincode || "",
             location: profile.location || "",
           });
+        } else {
+          // Fallback to user email if profile doesn't exist
+          setFormData(prev => ({
+            ...prev,
+            email: user.email || ""
+          }));
         }
 
         // If profile doesn't have complete data, try to get from latest order
@@ -71,6 +79,7 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
 
           if (latestOrder) {
             setFormData(prev => ({
+              email: prev.email,
               phone: prev.phone || latestOrder.phone_number || "",
               address: prev.address || latestOrder.delivery_address || "",
               pincode: prev.pincode || latestOrder.delivery_pincode || "",
@@ -143,7 +152,7 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
           pincode: formData.pincode,
           location: formData.location,
           name: user.user_metadata?.name || user.email?.split('@')[0] || '',
-          email: user.email || '',
+          email: formData.email,
           updated_at: new Date().toISOString(),
         });
     } catch (error) {
@@ -153,16 +162,6 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please login to place an order",
-        variant: "destructive",
-      });
-      navigate("/auth");
-      return;
-    }
 
     // Validate pincode serviceability
     const isServiceable = await validatePincode(formData.pincode);
@@ -182,8 +181,10 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
       const finalTotal = total + deliveryFee;
       const currentLocation = formData.location || await getCurrentLocation();
 
-      // Update user profile with latest details
-      await updateUserProfile();
+      // Update user profile if logged in
+      if (user) {
+        await updateUserProfile();
+      }
 
       if (paymentMethod === "online") {
         // Create Razorpay order
@@ -236,7 +237,7 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
             await createOrder(finalTotal, currentLocation, response);
           },
           prefill: {
-            email: user.email,
+            email: formData.email,
             contact: formData.phone,
           },
           theme: {
@@ -264,28 +265,38 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
 
   const createOrder = async (finalTotal: number, orderLocation: string, razorpayData?: any) => {
     try {
-      // Create order with payment_mode enum
+      // Create order data with proper payment_mode typing
+      const orderData = {
+        user_id: user?.id || null,
+        guest_email: !user ? formData.email : null,
+        total_amount: finalTotal,
+        delivery_fee: 50,
+        phone_number: formData.phone,
+        delivery_address: formData.address,
+        delivery_pincode: formData.pincode,
+        payment_method: paymentMethod,
+        payment_mode: (paymentMethod === "online" ? "prepaid" : "cod") as "cod" | "prepaid",
+        payment_status: paymentMethod === "online" ? "completed" : "pending",
+        order_location: orderLocation,
+        razorpay_order_id: razorpayData?.razorpay_order_id || null,
+        razorpay_payment_id: razorpayData?.razorpay_payment_id || null,
+        razorpay_signature: razorpayData?.razorpay_signature || null,
+      };
+
+      console.log('Creating order with data:', orderData);
+
       const { data: order, error: orderError } = await supabase
         .from("orders")
-        .insert({
-          user_id: user!.id,
-          total_amount: finalTotal,
-          delivery_fee: 50,
-          phone_number: formData.phone,
-          delivery_address: formData.address,
-          delivery_pincode: formData.pincode,
-          payment_method: paymentMethod,
-          payment_mode: paymentMethod === "online" ? "prepaid" : "cod",
-          payment_status: paymentMethod === "online" ? "completed" : "pending",
-          order_location: orderLocation,
-          razorpay_order_id: razorpayData?.razorpay_order_id || null,
-          razorpay_payment_id: razorpayData?.razorpay_payment_id || null,
-          razorpay_signature: razorpayData?.razorpay_signature || null,
-        })
+        .insert(orderData)
         .select()
         .single();
 
-      if (orderError) throw orderError;
+      if (orderError) {
+        console.error('Order creation error:', orderError);
+        throw orderError;
+      }
+
+      console.log('Order created successfully:', order);
 
       // Create order items
       const orderItems = cartItems.map(item => ({
@@ -300,7 +311,10 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
         .from("order_items")
         .insert(orderItems);
 
-      if (itemsError) throw itemsError;
+      if (itemsError) {
+        console.error('Order items creation error:', itemsError);
+        throw itemsError;
+      }
 
       toast({
         title: "Order placed successfully!",
@@ -320,6 +334,19 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
+            <Label htmlFor="email" className="text-sm font-semibold text-gray-700">Email Address</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              required
+              placeholder="Enter your email address"
+              className="h-10 border-2 focus:border-green-500 rounded-lg"
+            />
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="phone" className="text-sm font-semibold text-gray-700">Phone Number</Label>
             <Input
               id="phone"
@@ -329,19 +356,6 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
               onChange={handleInputChange}
               required
               placeholder="Enter your phone number"
-              className="h-10 border-2 focus:border-green-500 rounded-lg"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="pincode" className="text-sm font-semibold text-gray-700">Pincode</Label>
-            <Input
-              id="pincode"
-              name="pincode"
-              type="text"
-              value={formData.pincode}
-              onChange={handleInputChange}
-              required
-              placeholder="Enter delivery pincode"
               className="h-10 border-2 focus:border-green-500 rounded-lg"
             />
           </div>
@@ -360,16 +374,31 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="location" className="text-sm font-semibold text-gray-700">Location (Optional)</Label>
-          <Input
-            id="location"
-            name="location"
-            value={formData.location}
-            onChange={handleInputChange}
-            placeholder="Enter landmark or additional location details"
-            className="h-10 border-2 focus:border-green-500 rounded-lg"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="pincode" className="text-sm font-semibold text-gray-700">Pincode</Label>
+            <Input
+              id="pincode"
+              name="pincode"
+              type="text"
+              value={formData.pincode}
+              onChange={handleInputChange}
+              required
+              placeholder="Enter delivery pincode"
+              className="h-10 border-2 focus:border-green-500 rounded-lg"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="location" className="text-sm font-semibold text-gray-700">Location (Optional)</Label>
+            <Input
+              id="location"
+              name="location"
+              value={formData.location}
+              onChange={handleInputChange}
+              placeholder="Enter landmark or additional location details"
+              className="h-10 border-2 focus:border-green-500 rounded-lg"
+            />
+          </div>
         </div>
 
         <div className="space-y-3">

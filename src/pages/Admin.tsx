@@ -13,6 +13,8 @@ import AdminHeader from "@/components/admin/AdminHeader";
 import AdminTabs from "@/components/admin/AdminTabs";
 import CouponsForm from "@/components/admin/CouponsForm";
 import CouponsTable from "@/components/admin/CouponsTable";
+import BannerForm from "@/components/admin/BannerForm";
+import BannerTable from "@/components/admin/BannerTable";
 import DashboardTab from "@/components/admin/DashboardTab";
 import { Button } from "@/components/ui/button";
 import type { Database } from "@/integrations/supabase/types";
@@ -21,11 +23,13 @@ type OrderStatus = Database["public"]["Enums"]["order_status"];
 
 const Admin = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<"dashboard" | "products" | "orders" | "coupons" | "locations">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "products" | "orders" | "coupons" | "banners" | "locations">("dashboard");
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showAddCoupon, setShowAddCoupon] = useState(false);
+  const [showAddBanner, setShowAddBanner] = useState(false);
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
   const [editingCoupon, setEditingCoupon] = useState<string | null>(null);
+  const [editingBanner, setEditingBanner] = useState<string | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -50,6 +54,15 @@ const Admin = () => {
     usage_limit: "",
     expires_at: "",
     is_active: true
+  });
+
+  const [bannerForm, setBannerForm] = useState({
+    title: "",
+    subtitle: "",
+    image_url: "",
+    link_url: "",
+    is_active: true,
+    display_order: "0"
   });
 
   // Fetch products
@@ -92,6 +105,20 @@ const Admin = () => {
         .from("coupons")
         .select("*")
         .order("created_at", { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Fetch banners
+  const { data: banners = [], isLoading: bannersLoading, refetch: refetchBanners } = useQuery({
+    queryKey: ["admin-banners"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("banners")
+        .select("*")
+        .order("display_order", { ascending: true });
       
       if (error) throw error;
       return data || [];
@@ -392,6 +419,129 @@ const Admin = () => {
     setEditingCoupon(null);
   };
 
+  const handleAddBanner = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const { error } = await supabase
+        .from("banners")
+        .insert({
+          title: bannerForm.title,
+          subtitle: bannerForm.subtitle || null,
+          image_url: bannerForm.image_url,
+          link_url: bannerForm.link_url || null,
+          is_active: bannerForm.is_active,
+          display_order: parseInt(bannerForm.display_order)
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Banner added successfully",
+      });
+
+      resetBannerForm();
+      refetchBanners();
+    } catch (error) {
+      console.error("Error adding banner:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add banner",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditBanner = (banner: any) => {
+    setEditingBanner(banner.id);
+    setBannerForm({
+      title: banner.title,
+      subtitle: banner.subtitle || "",
+      image_url: banner.image_url,
+      link_url: banner.link_url || "",
+      is_active: banner.is_active,
+      display_order: banner.display_order.toString()
+    });
+    setShowAddBanner(true);
+  };
+
+  const handleUpdateBanner = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!editingBanner) return;
+    
+    try {
+      const { error } = await supabase
+        .from("banners")
+        .update({
+          title: bannerForm.title,
+          subtitle: bannerForm.subtitle || null,
+          image_url: bannerForm.image_url,
+          link_url: bannerForm.link_url || null,
+          is_active: bannerForm.is_active,
+          display_order: parseInt(bannerForm.display_order)
+        })
+        .eq("id", editingBanner);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Banner updated successfully",
+      });
+
+      resetBannerForm();
+      refetchBanners();
+    } catch (error) {
+      console.error("Error updating banner:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update banner",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteBanner = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this banner?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("banners")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Banner deleted successfully",
+      });
+      refetchBanners();
+    } catch (error) {
+      console.error("Error deleting banner:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete banner",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const resetBannerForm = () => {
+    setBannerForm({
+      title: "",
+      subtitle: "",
+      image_url: "",
+      link_url: "",
+      is_active: true,
+      display_order: "0"
+    });
+    setShowAddBanner(false);
+    setEditingBanner(null);
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
@@ -454,6 +604,16 @@ const Admin = () => {
             }`}
           >
             Coupons ({coupons.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("banners")}
+            className={`py-4 px-2 border-b-2 font-medium text-sm ${
+              activeTab === "banners"
+                ? "border-green-500 text-green-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Banners ({banners.length})
           </button>
           <button
             onClick={() => setActiveTab("locations")}
@@ -543,6 +703,38 @@ const Admin = () => {
               isLoading={couponsLoading}
               onEdit={handleEditCoupon}
               onDelete={deleteCoupon}
+            />
+          </div>
+        )}
+
+        {activeTab === "banners" && (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-800">Banners</h2>
+              <Button
+                onClick={() => setShowAddBanner(true)}
+                className="bg-green-500 hover:bg-green-600 flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Add Banner
+              </Button>
+            </div>
+
+            {showAddBanner && (
+              <BannerForm
+                bannerForm={bannerForm}
+                setBannerForm={setBannerForm}
+                onSubmit={editingBanner ? handleUpdateBanner : handleAddBanner}
+                onCancel={resetBannerForm}
+                isEditing={!!editingBanner}
+              />
+            )}
+
+            <BannerTable
+              banners={banners}
+              isLoading={bannersLoading}
+              onEdit={handleEditBanner}
+              onDelete={deleteBanner}
             />
           </div>
         )}

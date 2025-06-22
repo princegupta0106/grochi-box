@@ -33,10 +33,10 @@ const Checkout = () => {
 
   if (!checkoutData || !checkoutData.cartItems || checkoutData.cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">No items in cart</h2>
-          <Link to="/" className="text-green-600 hover:text-green-700">
+          <h2 className="text-2xl font-bold text-amber-800 mb-4">No items in cart</h2>
+          <Link to="/" className="text-amber-700 hover:text-amber-800">
             ← Back to home
           </Link>
         </div>
@@ -45,15 +45,15 @@ const Checkout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-10">
+      <header className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-amber-200 sticky top-0 z-10">
         <div className="px-4 py-4">
           <div className="flex items-center gap-3">
-            <Link to="/" className="p-2 hover:bg-gray-100 rounded-full">
-              <ArrowLeft className="w-5 h-5 text-gray-600" />
+            <Link to="/" className="p-2 hover:bg-amber-100 rounded-full">
+              <ArrowLeft className="w-5 h-5 text-amber-700" />
             </Link>
-            <h1 className="text-xl font-bold text-gray-900">Checkout</h1>
+            <h1 className="text-xl font-bold text-amber-800">Checkout</h1>
           </div>
         </div>
       </header>

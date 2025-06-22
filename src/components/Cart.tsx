@@ -49,15 +49,15 @@ const Cart = ({ isOpen, onClose, items, updateQuantity, removeItem, clearCart }:
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end">
-      <div className="bg-white w-full max-w-md h-full flex flex-col shadow-xl">
+      <div className="bg-white/95 backdrop-blur-sm w-full max-w-md h-full flex flex-col shadow-xl border-l border-amber-200">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-green-50">
-          <h2 className="text-lg font-bold text-gray-900">Your Cart</h2>
+        <div className="flex items-center justify-between p-4 border-b border-amber-200 bg-amber-50/50">
+          <h2 className="text-lg font-bold text-amber-800">Your Cart</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-amber-100 rounded-full transition-colors"
           >
-            <X className="w-5 h-5 text-gray-600" />
+            <X className="w-5 h-5 text-amber-700" />
           </button>
         </div>
 
@@ -66,15 +66,15 @@ const Cart = ({ isOpen, onClose, items, updateQuantity, removeItem, clearCart }:
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <div className="text-6xl mb-4">🛒</div>
-              <p className="text-gray-500 text-lg font-medium">Your cart is empty</p>
-              <p className="text-gray-400 text-sm mt-2">Add some items to get started</p>
+              <p className="text-amber-700 text-lg font-medium">Your cart is empty</p>
+              <p className="text-amber-600 text-sm mt-2">Add some items to get started</p>
             </div>
           </div>
         ) : (
           <>
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {items.map((item) => (
-                <div key={item.id} className="bg-gray-50 rounded-lg p-3 flex items-center gap-3">
+                <div key={item.id} className="bg-amber-50/50 rounded-lg p-3 flex items-center gap-3 border border-amber-200">
                   <div className="w-12 h-12 bg-white rounded-md flex items-center justify-center text-2xl">
                     {item.image.startsWith('http') ? (
                       <img src={item.image} alt={item.name} className="w-full h-full object-cover rounded-md" />
@@ -84,22 +84,22 @@ const Cart = ({ isOpen, onClose, items, updateQuantity, removeItem, clearCart }:
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-gray-900 text-sm truncate">{item.name}</h3>
-                    <p className="text-xs text-gray-500">{item.unit}</p>
-                    <p className="text-sm font-bold text-green-600">₹{item.price}</p>
+                    <h3 className="font-medium text-amber-800 text-sm truncate">{item.name}</h3>
+                    <p className="text-xs text-amber-600">{item.unit}</p>
+                    <p className="text-sm font-bold text-amber-700">₹{item.price}</p>
                   </div>
                   
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors"
+                      className="w-7 h-7 rounded-full bg-amber-200 flex items-center justify-center hover:bg-amber-300 transition-colors"
                     >
-                      <Minus className="w-3 h-3" />
+                      <Minus className="w-3 h-3 text-amber-700" />
                     </button>
-                    <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+                    <span className="w-8 text-center text-sm font-medium text-amber-800">{item.quantity}</span>
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="w-7 h-7 rounded-full bg-green-500 text-white flex items-center justify-center hover:bg-green-600 transition-colors"
+                      className="w-7 h-7 rounded-full bg-amber-600 text-white flex items-center justify-center hover:bg-amber-700 transition-colors"
                     >
                       <Plus className="w-3 h-3" />
                     </button>
@@ -116,24 +116,24 @@ const Cart = ({ isOpen, onClose, items, updateQuantity, removeItem, clearCart }:
             </div>
 
             {/* Footer */}
-            <div className="border-t border-gray-200 p-4 bg-white">
+            <div className="border-t border-amber-200 p-4 bg-amber-50/50">
               <div className="flex justify-between items-center mb-4">
-                <span className="text-lg font-bold text-gray-900">Total:</span>
-                <span className="text-xl font-bold text-green-600">₹{total}</span>
+                <span className="text-lg font-bold text-amber-800">Total:</span>
+                <span className="text-xl font-bold text-amber-700">₹{total}</span>
               </div>
               
               <div className="space-y-2">
                 <button
                   onClick={handleProceedToCheckout}
                   disabled={items.length === 0}
-                  className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-bold py-3 px-4 rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold py-3 px-4 rounded-lg hover:from-amber-700 hover:to-amber-800 transition-all duration-200 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Proceed to Checkout
                 </button>
                 
                 <button
                   onClick={clearCart}
-                  className="w-full bg-gray-100 text-gray-700 font-medium py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="w-full bg-amber-100 text-amber-800 font-medium py-2 px-4 rounded-lg hover:bg-amber-200 transition-colors"
                 >
                   Clear Cart
                 </button>

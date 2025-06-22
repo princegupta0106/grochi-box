@@ -26,10 +26,10 @@ const ProductDetail = () => {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Product not found</h2>
-          <Link to="/" className="text-green-600 hover:text-green-700">
+          <h2 className="text-2xl font-bold text-amber-800 mb-2">Product not found</h2>
+          <Link to="/" className="text-amber-700 hover:text-amber-800">
             ← Back to home
           </Link>
         </div>
@@ -38,15 +38,6 @@ const ProductDetail = () => {
   }
 
   const addToCart = () => {
-    if (!user) {
-      toast({
-        title: "Login Required",
-        description: "Please login to add items to cart",
-        variant: "destructive",
-      });
-      return;
-    }
-
     toast({
       title: "Added to cart",
       description: `${quantity} ${product.name} added to your cart`,
@@ -58,20 +49,20 @@ const ProductDetail = () => {
   const isImageUrl = productImage.startsWith('http') || productImage.startsWith('/');
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 bg-white shadow-sm z-50 border-b border-gray-100">
+      <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-sm shadow-sm z-50 border-b border-amber-200">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Link to="/" className="p-2 hover:bg-gray-100 rounded-full">
-                <ArrowLeft className="w-5 h-5 text-gray-600" />
+              <Link to="/" className="p-2 hover:bg-amber-100 rounded-full">
+                <ArrowLeft className="w-5 h-5 text-amber-700" />
               </Link>
-              <h1 className="text-lg font-bold text-gray-900">Product Details</h1>
+              <h1 className="text-lg font-bold text-amber-800">Product Details</h1>
             </div>
             
-            <button className="relative p-2 bg-green-100 rounded-full hover:bg-green-200 transition-colors">
-              <ShoppingCart className="w-5 h-5 text-green-600" />
+            <button className="relative p-2 bg-amber-100 rounded-full hover:bg-amber-200 transition-colors">
+              <ShoppingCart className="w-5 h-5 text-amber-700" />
             </button>
           </div>
         </div>
@@ -79,9 +70,9 @@ const ProductDetail = () => {
 
       {/* Product Details */}
       <div className="pt-20 pb-24">
-        <div className="bg-white mx-4 mt-4 rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white/80 backdrop-blur-sm mx-4 mt-4 rounded-xl shadow-lg overflow-hidden border border-amber-200">
           {/* Product Image */}
-          <div className="h-64 bg-gray-50 flex items-center justify-center p-8">
+          <div className="h-64 bg-amber-50/70 flex items-center justify-center p-8">
             {isImageUrl ? (
               <img 
                 src={productImage} 
@@ -106,35 +97,35 @@ const ProductDetail = () => {
 
           {/* Product Info */}
           <div className="p-6">            
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">{product.name}</h1>
-            <p className="text-gray-600 mb-4">{product.weight || "1 unit"}</p>
+            <h1 className="text-2xl font-bold text-amber-800 mb-2">{product.name}</h1>
+            <p className="text-amber-700 mb-4">{product.weight || "1 unit"}</p>
             
             {product.description && (
-              <p className="text-gray-700 text-sm mb-6 leading-relaxed">
+              <p className="text-amber-800 text-sm mb-6 leading-relaxed">
                 {product.description}
               </p>
             )}
             
             <div className="flex items-center gap-3 mb-6">
-              <span className="text-2xl font-bold text-gray-900">₹{product.price}</span>
+              <span className="text-2xl font-bold text-amber-800">₹{product.price}</span>
             </div>
 
             {/* Quantity Selector */}
             <div className="flex items-center gap-4 mb-6">
-              <span className="text-gray-700 font-medium">Quantity:</span>
-              <div className="flex items-center border border-gray-300 rounded-lg">
+              <span className="text-amber-800 font-medium">Quantity:</span>
+              <div className="flex items-center border border-amber-300 rounded-lg">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="p-2 hover:bg-gray-100 transition-colors"
+                  className="p-2 hover:bg-amber-100 transition-colors"
                 >
-                  <Minus className="w-4 h-4" />
+                  <Minus className="w-4 h-4 text-amber-700" />
                 </button>
-                <span className="px-4 py-2 font-medium">{quantity}</span>
+                <span className="px-4 py-2 font-medium text-amber-800">{quantity}</span>
                 <button
                   onClick={() => setQuantity(quantity + 1)}
-                  className="p-2 hover:bg-gray-100 transition-colors"
+                  className="p-2 hover:bg-amber-100 transition-colors"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-4 h-4 text-amber-700" />
                 </button>
               </div>
             </div>
@@ -143,10 +134,10 @@ const ProductDetail = () => {
       </div>
 
       {/* Fixed Bottom Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-t border-amber-200 p-4">
         <button
           onClick={addToCart}
-          className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+          className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg"
         >
           <ShoppingCart className="w-5 h-5" />
           Add {quantity} to Cart - ₹{(parseFloat(product.price.toString()) * quantity).toFixed(2)}

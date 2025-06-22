@@ -24,10 +24,10 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
   const isImageUrl = product.image.startsWith('http') || product.image.startsWith('/');
 
   return (
-    <div className="bg-white rounded-lg p-1.5 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 w-full relative overflow-hidden">
+    <div className="bg-transparent rounded-lg p-1.5 shadow-lg border border-amber-200/50 hover:shadow-xl transition-all duration-300 w-full relative overflow-hidden backdrop-blur-sm">
       <Link to={`/product/${product.id}`} className="block">
         <div className="text-center mb-1.5">
-          <div className="mb-1 h-16 flex items-center justify-center bg-gray-50 rounded-md">
+          <div className="mb-1 h-16 flex items-center justify-center bg-amber-50/70 rounded-md">
             {isImageUrl ? (
               <img 
                 src={product.image} 
@@ -57,15 +57,15 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
         </div>
         
         <div className="space-y-0.5 mb-1.5">
-          <h3 className="font-semibold text-gray-900 text-xs leading-tight line-clamp-2 min-h-[1rem]">
+          <h3 className="font-semibold text-amber-900 text-xs leading-tight line-clamp-2 min-h-[1rem]">
             {product.name}
           </h3>
-          <p className="text-gray-500 text-xs">{product.unit}</p>
+          <p className="text-amber-700 text-xs">{product.unit}</p>
           
           <div className="flex items-center gap-1">
-            <span className="font-bold text-green-600 text-sm">₹{product.price}</span>
+            <span className="font-bold text-amber-800 text-sm">₹{product.price}</span>
             {product.originalPrice && (
-              <span className="text-gray-400 text-xs line-through">
+              <span className="text-amber-600 text-xs line-through">
                 ₹{product.originalPrice}
               </span>
             )}
@@ -78,7 +78,7 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
           e.preventDefault();
           onAddToCart(product);
         }}
-        className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-xs font-semibold py-1 px-2 rounded-md transition-all duration-200 transform hover:scale-105 shadow-md"
+        className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white text-xs font-semibold py-1 px-2 rounded-md transition-all duration-200 transform hover:scale-105 shadow-md"
       >
         ADD TO CART
       </button>

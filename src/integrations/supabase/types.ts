@@ -45,6 +45,42 @@ export type Database = {
         }
         Relationships: []
       }
+      banners: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          image_url: string
+          is_active: boolean
+          link_url: string | null
+          subtitle: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url: string
+          is_active?: boolean
+          link_url?: string | null
+          subtitle?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url?: string
+          is_active?: boolean
+          link_url?: string | null
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       coupons: {
         Row: {
           code: string
@@ -141,6 +177,7 @@ export type Database = {
           delivery_address: string
           delivery_fee: number | null
           delivery_pincode: string
+          guest_email: string | null
           id: string
           order_location: string | null
           payment_method: string | null
@@ -160,6 +197,7 @@ export type Database = {
           delivery_address: string
           delivery_fee?: number | null
           delivery_pincode: string
+          guest_email?: string | null
           id?: string
           order_location?: string | null
           payment_method?: string | null
@@ -179,6 +217,7 @@ export type Database = {
           delivery_address?: string
           delivery_fee?: number | null
           delivery_pincode?: string
+          guest_email?: string | null
           id?: string
           order_location?: string | null
           payment_method?: string | null
