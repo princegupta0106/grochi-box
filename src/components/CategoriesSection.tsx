@@ -20,7 +20,7 @@ const CategoriesSection = () => {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <h2 className="text-3xl font-bold text-amber-800 text-center mb-8">Explore Our Categories</h2>
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 max-w-5xl mx-auto">
+      <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 max-w-5xl mx-auto">
         {categories.map((category) => {
           const IconComponent = category.icon;
           return (
@@ -29,11 +29,11 @@ const CategoriesSection = () => {
               to={`/products?category=${category.id}`}
               className="bg-white/50 backdrop-blur-sm rounded-lg border border-amber-100/50 shadow-sm hover:shadow-md transition-all duration-200 transform hover:scale-105 overflow-hidden"
             >
-              <div className="p-4 flex flex-col items-center text-center">
-                <div className="w-12 h-12 bg-amber-100/50 rounded-lg flex items-center justify-center mb-3">
-                  <IconComponent className="w-6 h-6 text-amber-700" />
+              <div className="p-3 flex flex-col items-center text-center">
+                <div className="w-10 h-10 bg-amber-100/50 rounded-lg flex items-center justify-center mb-2">
+                  <IconComponent className="w-5 h-5 text-amber-700" />
                 </div>
-                <span className="text-sm font-medium text-amber-800 leading-tight">
+                <span className="text-xs font-medium text-amber-800 leading-tight">
                   {category.name}
                 </span>
               </div>

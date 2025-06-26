@@ -5,9 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { X } from "lucide-react";
+import { X, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+
+interface ProductVariant {
+  id?: string;
+  weight: string;
+  price: string;
+  stock_quantity: string;
+}
 
 interface ProductFormProps {
   productForm: {
@@ -39,9 +46,29 @@ interface ProductFormProps {
 
 const ProductForm = ({ productForm, setProductForm, onSubmit, onCancel, isEditing }: ProductFormProps) => {
   const [uploading, setUploading] = useState(false);
+  const [variants, setVariants] = useState<ProductVariant[]>([
+    { weight: '', price: '', stock_quantity: '0' }
+  ]);
   const { toast } = useToast();
 
   const uploadedImages = productForm.images ? productForm.images.split(',').map(img => img.trim()).filter(img => img) : [];
+
+  const addVariant = () => {
+    setVariants([...variants, { weight: '', price: '', stock_quantity: '0' }]);
+  };
+
+  const removeVariant = (index: number) => {
+    if (variants.length > 1) {
+      setVariants(variants.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateVariant = (index: number, field: keyof ProductVariant, value: string) => {
+    const updated = variants.map((variant, i) => 
+      i === index ? { ...variant, [field]: value } : variant
+    );
+    setVariants(updated);
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -119,38 +146,6 @@ const ProductForm = ({ productForm, setProductForm, onSubmit, onCancel, isEditin
           </div>
 
           <div>
-            <Label htmlFor="price">Price (₹) *</Label>
-            <Input
-              id="price"
-              type="number"
-              step="0.01"
-              value={productForm.price}
-              onChange={(e) => setProductForm(prev => ({ ...prev, price: e.target.value }))}
-              required
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="weight">Weight/Unit</Label>
-            <Input
-              id="weight"
-              value={productForm.weight}
-              onChange={(e) => setProductForm(prev => ({ ...prev, weight: e.target.value }))}
-              placeholder="e.g., 1kg, 500g, 1 piece"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="minimum_order_qty">Minimum Order Quantity</Label>
-            <Input
-              id="minimum_order_qty"
-              type="number"
-              value={productForm.minimum_order_qty}
-              onChange={(e) => setProductForm(prev => ({ ...prev, minimum_order_qty: e.target.value }))}
-            />
-          </div>
-
-          <div>
             <Label htmlFor="category">Category *</Label>
             <Input
               id="category"
@@ -168,6 +163,16 @@ const ProductForm = ({ productForm, setProductForm, onSubmit, onCancel, isEditin
               onChange={(e) => setProductForm(prev => ({ ...prev, sub_category: e.target.value }))}
             />
           </div>
+
+          <div>
+            <Label htmlFor="minimum_order_qty">Minimum Order Quantity</Label>
+            <Input
+              id="minimum_order_qty"
+              type="number"
+              value={productForm.minimum_order_qty}
+              onChange={(e) => setProductForm(prev => ({ ...prev, minimum_order_qty: e.target.value }))}
+            />
+          </div>
         </div>
 
         <div>
@@ -178,6 +183,58 @@ const ProductForm = ({ productForm, setProductForm, onSubmit, onCancel, isEditin
             onChange={(e) => setProductForm(prev => ({ ...prev, description: e.target.value }))}
             rows={3}
           />
+        </div>
+
+        {/* Product Variants */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <Label>Product Variants</Label>
+            <Button type="button" onClick={addVariant} size="sm" variant="outline">
+              <Plus className="w-4 h-4 mr-1" />
+              Add Variant
+            </Button>
+          </div>
+          
+          {variants.map((variant, index) => (
+            <div key={index} className="grid grid-cols-4 gap-2 mb-2 p-3 border rounded">
+              <div>
+                <Label className="text-xs">Weight/Size</Label>
+                <Input
+                  placeholder="e.g., 500g, 1kg"
+                  value={variant.weight}
+                  onChange={(e) => updateVariant(index, 'weight', e.target.value)}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Price (₹)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={variant.price}
+                  onChange={(e) => updateVariant(index, 'price', e.target.value)}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Stock</Label>
+                <Input
+                  type="number"
+                  value={variant.stock_quantity}
+                  onChange={(e) => updateVariant(index, 'stock_quantity', e.target.value)}
+                />
+              </div>
+              <div className="flex items-end">
+                <Button
+                  type="button"
+                  onClick={() => removeVariant(index)}
+                  size="sm"
+                  variant="outline"
+                  disabled={variants.length === 1}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
         </div>
 
         <div>

@@ -6,25 +6,15 @@ import { useProducts } from "@/hooks/useProducts";
 import { Search, ArrowLeft, ShoppingCart } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import Cart from "@/components/Cart";
-import { useToast } from "@/hooks/use-toast";
-
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  unit: string;
-  image: string;
-  quantity: number;
-}
+import { useCart } from "@/contexts/CartContext";
 
 const Products = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const category = searchParams.get("category") || "";
   const [searchQuery, setSearchQuery] = useState("");
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const { toast } = useToast();
+  const { cartItems, addToCart, updateQuantity, removeItem, clearCart, getTotalItems } = useCart();
 
   const { data: products = [], isLoading, error } = useProducts(category);
 
@@ -33,47 +23,18 @@ const Products = () => {
     product.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const addToCart = (product: any) => {
-    setCartItems(prev => {
-      const existingItem = prev.find(item => item.id === product.id);
-      if (existingItem) {
-        return prev.map(item =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-      return [...prev, { ...product, quantity: 1 }];
+  const handleAddToCart = (product: any) => {
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      unit: product.unit,
+      image: product.image
     });
-
-    toast({
-      title: "Added to cart",
-      description: `${product.name} added to your cart`,
-    });
-  };
-
-  const updateQuantity = (id: string, quantity: number) => {
-    if (quantity === 0) {
-      setCartItems(prev => prev.filter(item => item.id !== id));
-    } else {
-      setCartItems(prev =>
-        prev.map(item =>
-          item.id === id ? { ...item, quantity } : item
-        )
-      );
-    }
-  };
-
-  const removeItem = (id: string) => {
-    setCartItems(prev => prev.filter(item => item.id !== id));
-  };
-
-  const clearCart = () => {
-    setCartItems([]);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 bg-white shadow-sm z-50 border-b border-gray-100">
         <div className="px-4 py-3">
@@ -83,7 +44,7 @@ const Products = () => {
                 <ArrowLeft className="w-5 h-5 text-gray-600" />
               </Link>
               <div>
-                <h1 className="text-xl font-bold text-amber-800">
+                <h1 className="text-xl font-bold text-gray-800">
                   {category ? category.charAt(0).toUpperCase() + category.slice(1) : "All Products"}
                 </h1>
                 <p className="text-xs text-gray-500">
@@ -94,12 +55,12 @@ const Products = () => {
             
             <button 
               onClick={() => setIsCartOpen(true)}
-              className="relative p-2 bg-amber-100 rounded-full hover:bg-amber-200 transition-colors"
+              className="relative p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
             >
-              <ShoppingCart className="w-5 h-5 text-amber-800" />
-              {cartItems.length > 0 && (
+              <ShoppingCart className="w-5 h-5 text-gray-800" />
+              {getTotalItems() > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
-                  {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+                  {getTotalItems()}
                 </span>
               )}
             </button>
@@ -113,7 +74,7 @@ const Products = () => {
               placeholder="Search for products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition-all"
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-all"
             />
           </div>
         </div>
@@ -154,7 +115,7 @@ const Products = () => {
                   unit: product.weight || "1 unit",
                   image: (product.images && product.images[0]) ? product.images[0] : "🛒",
                 }}
-                onAddToCart={addToCart}
+                onAddToCart={handleAddToCart}
               />
             ))}
           </div>

@@ -50,14 +50,14 @@ const CategoryTabs = ({ selectedCategory, onCategoryChange }: CategoryTabsProps)
     <div className="bg-white border-b border-gray-100 py-3">
       <div className="px-4">
         <h2 className="text-base font-semibold text-gray-800 mb-3">Shop by Category</h2>
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8">
+        <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {categories.map((category) => (
             <button
               key={category.id}
               onClick={() => handleCategoryClick(category.id)}
-              className="bg-white rounded-lg p-2 shadow-sm border border-gray-100 hover:shadow-md transition-all active:scale-95 w-full"
+              className="flex-shrink-0 bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-all active:scale-95 w-20"
             >
-              <div className="aspect-square w-full rounded-md overflow-hidden mb-2 mx-auto">
+              <div className="aspect-square rounded-md overflow-hidden mb-2 w-12 h-12 mx-auto">
                 <img 
                   src={category.image} 
                   alt={category.name}

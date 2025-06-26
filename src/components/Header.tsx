@@ -97,7 +97,7 @@ const Header = ({ cartItemsCount, onCartClick }: HeaderProps) => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <button
             onClick={handleSearchClick}
-            className="w-full pl-10 pr-4 py-3 bg-white rounded-lg text-sm text-left text-gray-500 hover:bg-gray-50 transition-colors border border-gray-200"
+            className="w-full pl-10 pr-4 py-3 bg-amber-50 rounded-lg text-sm text-left text-gray-500 hover:bg-amber-100 transition-colors border border-amber-200"
           >
             Search for products...
           </button>

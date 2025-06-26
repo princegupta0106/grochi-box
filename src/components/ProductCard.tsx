@@ -24,10 +24,10 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
   const isImageUrl = product.image.startsWith('http') || product.image.startsWith('/');
 
   return (
-    <div className="bg-transparent rounded-lg p-1.5 shadow-lg border border-amber-200/50 hover:shadow-xl transition-all duration-300 w-full relative overflow-hidden backdrop-blur-sm">
+    <div className="bg-white/80 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-gray-200/50 hover:shadow-xl transition-all duration-300 w-full relative overflow-hidden">
       <Link to={`/product/${product.id}`} className="block">
-        <div className="text-center mb-1.5">
-          <div className="mb-1 h-16 flex items-center justify-center bg-amber-50/70 rounded-md">
+        <div className="text-center mb-3">
+          <div className="mb-2 h-20 flex items-center justify-center bg-white rounded-md">
             {isImageUrl ? (
               <img 
                 src={product.image} 
@@ -43,29 +43,29 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
                 }}
               />
             ) : (
-              <div className="text-3xl">{product.image}</div>
+              <div className="text-4xl">{product.image}</div>
             )}
             {isImageUrl && (
-              <div className="text-3xl hidden">🛒</div>
+              <div className="text-4xl hidden">🛒</div>
             )}
           </div>
           {discount > 0 && (
-            <span className="absolute top-1 right-1 bg-red-500 text-white text-xs px-1 py-0.5 rounded-full font-bold">
+            <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold">
               {discount}% OFF
             </span>
           )}
         </div>
         
-        <div className="space-y-0.5 mb-1.5">
-          <h3 className="font-semibold text-amber-900 text-xs leading-tight line-clamp-2 min-h-[1rem]">
+        <div className="space-y-1 mb-3">
+          <h3 className="font-semibold text-gray-900 text-sm leading-tight line-clamp-2 min-h-[2rem]">
             {product.name}
           </h3>
-          <p className="text-amber-700 text-xs">{product.unit}</p>
+          <p className="text-gray-600 text-xs">{product.unit}</p>
           
-          <div className="flex items-center gap-1">
-            <span className="font-bold text-amber-800 text-sm">₹{product.price}</span>
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-gray-800 text-lg">₹{product.price}</span>
             {product.originalPrice && (
-              <span className="text-amber-600 text-xs line-through">
+              <span className="text-gray-500 text-sm line-through">
                 ₹{product.originalPrice}
               </span>
             )}
@@ -78,7 +78,7 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
           e.preventDefault();
           onAddToCart(product);
         }}
-        className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white text-xs font-semibold py-1 px-2 rounded-md transition-all duration-200 transform hover:scale-105 shadow-md"
+        className="w-full bg-[#d97706] hover:bg-gray-900 text-white text-sm font-semibold py-2 px-3 rounded-md transition-all duration-200 transform hover:scale-105 shadow-md"
       >
         ADD TO CART
       </button>

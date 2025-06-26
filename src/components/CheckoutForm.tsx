@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -30,6 +29,7 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
+    name: "",
     email: "",
     phone: "",
     address: "",
@@ -47,12 +47,13 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
         // First try to get data from user profile
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('phone_number, address, pincode, location, email')
+          .select('name, phone_number, address, pincode, location, email')
           .eq('id', user.id)
           .single();
 
         if (!profileError && profile) {
           setFormData({
+            name: profile.name || user.user_metadata?.name || "",
             email: profile.email || user.email || "",
             phone: profile.phone_number || "",
             address: profile.address || "",
@@ -63,6 +64,7 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
           // Fallback to user email if profile doesn't exist
           setFormData(prev => ({
             ...prev,
+            name: user.user_metadata?.name || "",
             email: user.email || ""
           }));
         }
@@ -79,6 +81,7 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
 
           if (latestOrder) {
             setFormData(prev => ({
+              name: prev.name,
               email: prev.email,
               phone: prev.phone || latestOrder.phone_number || "",
               address: prev.address || latestOrder.delivery_address || "",
@@ -101,23 +104,6 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
       ...prev,
       [name]: value
     }));
-  };
-
-  const validatePincode = async (pincode: string) => {
-    try {
-      const { data, error } = await supabase
-        .rpc('is_pincode_serviceable', { check_pincode: pincode });
-
-      if (error) {
-        console.error('Error checking pincode:', error);
-        return false;
-      }
-
-      return data;
-    } catch (error) {
-      console.error('Error validating pincode:', error);
-      return false;
-    }
   };
 
   const getCurrentLocation = (): Promise<string> => {
@@ -147,11 +133,11 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
         .from('profiles')
         .upsert({
           id: user.id,
+          name: formData.name,
           phone_number: formData.phone,
           address: formData.address,
           pincode: formData.pincode,
           location: formData.location,
-          name: user.user_metadata?.name || user.email?.split('@')[0] || '',
           email: formData.email,
           updated_at: new Date().toISOString(),
         });
@@ -160,20 +146,22 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
     }
   };
 
+  // Helper function to extract product UUID from cart item ID
+  const extractProductId = (cartItemId: string): string => {
+    // If the ID contains a hyphen pattern indicating it might be concatenated
+    // Split by the last occurrence of a UUID pattern and take the first part
+    const parts = cartItemId.split('-');
+    if (parts.length > 5) {
+      // This looks like a concatenated UUID (product-variant)
+      // Take the first 5 parts to reconstruct the product UUID
+      return parts.slice(0, 5).join('-');
+    }
+    // Otherwise, assume it's already a proper product ID
+    return cartItemId;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Validate pincode serviceability
-    const isServiceable = await validatePincode(formData.pincode);
-    if (!isServiceable) {
-      toast({
-        title: "Service Not Available",
-        description: `Sorry, we don't deliver to pincode ${formData.pincode} yet.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -237,6 +225,7 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
             await createOrder(finalTotal, currentLocation, response);
           },
           prefill: {
+            name: formData.name,
             email: formData.email,
             contact: formData.phone,
           },
@@ -265,7 +254,7 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
 
   const createOrder = async (finalTotal: number, orderLocation: string, razorpayData?: any) => {
     try {
-      // Create order data with proper payment_mode typing
+      // Create order data
       const orderData = {
         user_id: user?.id || null,
         guest_email: !user ? formData.email : null,
@@ -298,14 +287,21 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
 
       console.log('Order created successfully:', order);
 
-      // Create order items
-      const orderItems = cartItems.map(item => ({
-        order_id: order.id,
-        product_id: item.id,
-        quantity: item.quantity,
-        unit_price: item.price,
-        total_price: item.price * item.quantity,
-      }));
+      // Create order items with proper product_id format
+      const orderItems = cartItems.map(item => {
+        const productId = extractProductId(item.id);
+        console.log(`Cart item ID: ${item.id}, Extracted product ID: ${productId}`);
+        
+        return {
+          order_id: order.id,
+          product_id: productId, // Use extracted product UUID
+          quantity: item.quantity,
+          unit_price: item.price,
+          total_price: item.price * item.quantity,
+        };
+      });
+
+      console.log('Creating order items:', orderItems);
 
       const { error: itemsError } = await supabase
         .from("order_items")
@@ -315,6 +311,8 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
         console.error('Order items creation error:', itemsError);
         throw itemsError;
       }
+
+      console.log('Order items created successfully');
 
       toast({
         title: "Order placed successfully!",
@@ -332,6 +330,20 @@ const CheckoutForm = ({ cartItems, total, onSuccess }: CheckoutFormProps) => {
   return (
     <div className="max-w-2xl mx-auto">
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="name" className="text-sm font-semibold text-gray-700">Full Name</Label>
+          <Input
+            id="name"
+            name="name"
+            type="text"
+            value={formData.name}
+            onChange={handleInputChange}
+            required
+            placeholder="Enter your full name"
+            className="h-10 border-2 focus:border-green-500 rounded-lg"
+          />
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="email" className="text-sm font-semibold text-gray-700">Email Address</Label>

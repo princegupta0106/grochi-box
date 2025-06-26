@@ -92,8 +92,14 @@
   }
 
   body {
-    @apply bg-gradient-to-br from-amber-50 to-orange-50 text-foreground;
+    @apply bg-white text-foreground;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
   }
 }
 
